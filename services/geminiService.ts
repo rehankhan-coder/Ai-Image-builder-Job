@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Chat } from '@google/genai';
+import { GoogleGenAI, Chat, Modality } from '@google/genai';
 import type { User } from '../types';
 
 if (!process.env.API_KEY) {
@@ -60,5 +60,54 @@ export const generateImage = async (prompt: string): Promise<string> => {
     } catch (error) {
         console.error("Error generating image:", error);
         throw new Error("Failed to generate image. Please try again.");
+    }
+};
+
+export const editImage = async (base64ImageData: string, mimeType: string, prompt: string): Promise<{ imageUrl: string; text: string | null }> => {
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image-preview',
+            contents: {
+                parts: [
+                    {
+                        inlineData: {
+                            data: base64ImageData,
+                            mimeType: mimeType,
+                        },
+                    },
+                    { text: prompt },
+                ],
+            },
+            config: {
+                responseModalities: [Modality.IMAGE, Modality.TEXT],
+            },
+        });
+
+        let imageUrl: string | null = null;
+        let text: string | null = null;
+
+        if (response.candidates && response.candidates.length > 0) {
+            for (const part of response.candidates[0].content.parts) {
+                if (part.inlineData) {
+                    const base64ImageBytes: string = part.inlineData.data;
+                    imageUrl = `data:${part.inlineData.mimeType};base64,${base64ImageBytes}`;
+                } else if (part.text) {
+                    text = part.text;
+                }
+            }
+        }
+
+        if (!imageUrl) {
+            throw new Error("The AI did not return an edited image. It might have refused the request.");
+        }
+
+        return { imageUrl, text };
+
+    } catch (error) {
+        console.error("Error editing image:", error);
+        if (error instanceof Error) {
+            throw new Error(`Failed to edit image: ${error.message}`);
+        }
+        throw new Error("Failed to edit image. Please try again.");
     }
 };

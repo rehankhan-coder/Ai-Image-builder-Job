@@ -32,4 +32,5 @@ export interface ChatMessage {
 export enum AssistantMode {
     CHAT = 'chat',
     IMAGE = 'image',
+    IMAGE_EDIT = 'image_edit',
 }
