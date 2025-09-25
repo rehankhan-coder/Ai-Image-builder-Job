@@ -1,0 +1,5 @@
+{
+  "name": "JobLink AI",
+  "description": "An intelligent job platform where companies post jobs and students apply with resumes, featuring an AI assistant for image generation and platform guidance powered by the Gemini API.",
+  "requestFramePermissions": []
+}
